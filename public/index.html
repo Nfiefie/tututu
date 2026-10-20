@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中矩视界 · 绘图工作台</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><rect x="3.4" y="4.6" width="17.2" height="14.8" rx="3"/><circle cx="8.6" cy="9.6" r="1.6" fill="currentColor" stroke="none"/><path d="M4.4 16.4 9.2 11.6l3.4 3.1 2.4-2 4.6 3.7"/></svg>
+      </span>
+      <span class="brand-name">中矩视界</span>
+      <span class="brand-sub">绘图工作台</span>
+    </div>
+
+    <div class="mode-seg" id="modeSeg" role="tablist" aria-label="生成模式">
+      <button class="seg active" type="button" role="tab" aria-selected="true" data-mode="single">
+        <svg viewBox="0 0 20 20" class="ic"><rect x="3" y="4" width="14" height="12" rx="2.2"/><circle cx="7.6" cy="8.2" r="1.25" fill="currentColor" stroke="none"/><path d="M3.8 13.6 7.9 9.8l3 2.8 2-1.7 3.3 3"/></svg>
+        <span>单次生成</span>
+      </button>
+      <button class="seg" type="button" role="tab" aria-selected="false" data-mode="batch">
+        <svg viewBox="0 0 20 20" class="ic"><rect x="2.6" y="3.2" width="6.4" height="6.4" rx="1.6"/><rect x="11" y="3.2" width="6.4" height="6.4" rx="1.6"/><rect x="2.6" y="11" width="6.4" height="6.4" rx="1.6"/><path d="M11.4 14.2h5.6M14.2 11.4v5.6"/></svg>
+        <span>批量修改</span>
+      </button>
+    </div>
+
+    <div class="grow"></div>
+
+    <button class="top-btn" id="btn-history" type="button" title="历史图片">
+      <svg viewBox="0 0 20 20" class="ic"><circle cx="10" cy="10" r="7"/><path d="M10 6v4.2l2.8 1.7"/></svg>
+      <span>历史</span>
+      <em class="badge" id="historyCount">0</em>
+    </button>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="thread" id="thread"></div>
+  </main>
+
+  <footer class="composer">
+    <div class="composer-inner">
+
+      <div class="batch" id="batch" hidden>
+        <div class="batch-grid">
+          <section class="drop" id="dropTarget" data-kind="target">
+            <div class="drop-head">
+              <span class="dot target"></span>
+              <span class="drop-title">待修改图片</span>
+              <span class="drop-count" id="targetCount">0</span>
+              <div class="grow"></div>
+              <button class="drop-clear" type="button" data-clear="target">清空</button>
+            </div>
+            <div class="thumbs" id="targetThumbs"></div>
+            <p class="drop-hint" id="targetHint">点击选择，或把图片拖进来 · 每张图单独生成 1 个任务</p>
+          </section>
+
+          <section class="drop" id="dropRef" data-kind="ref">
+            <div class="drop-head">
+              <span class="dot ref"></span>
+              <span class="drop-title">参考图片</span>
+              <span class="drop-count" id="refCount">0</span>
+              <div class="grow"></div>
+              <button class="drop-clear" type="button" data-clear="ref">清空</button>
+            </div>
+            <div class="thumbs" id="refThumbs"></div>
+            <p class="drop-hint" id="refHint">所有待修改图共用这套参考 · 提示词里用「图1 / 图2」对应编号</p>
+          </section>
+        </div>
+        <div class="batch-bar">
+          <span class="batch-state" id="batchState">等待上传待修改图片</span>
+          <div class="grow"></div>
+          <button class="link-btn" id="btn-batch-to-single" type="button">切回单次生成</button>
+        </div>
+      </div>
+
+      <div class="refs" id="refs" hidden></div>
+
+      <div class="row row-1">
+        <div class="tabs" id="tabs">
+          <button class="tab" data-mode="对话" type="button">
+            <svg viewBox="0 0 20 20" class="ic"><path d="M3.6 5.4A1.9 1.9 0 0 1 5.5 3.5h9a1.9 1.9 0 0 1 1.9 1.9v5.1a1.9 1.9 0 0 1-1.9 1.9H9.2l-3.4 2.7v-2.7h-.2a1.9 1.9 0 0 1-1.9-1.9Z"/></svg>
+            <span>对话</span>
+          </button>
+          <button class="tab active" data-mode="生图" type="button">
+            <svg viewBox="0 0 20 20" class="ic"><rect x="3" y="4" width="14" height="12" rx="2.2"/><circle cx="7.6" cy="8.2" r="1.25" fill="currentColor" stroke="none"/><path d="M3.8 13.6 7.9 9.8l3 2.8 2-1.7 3.3 3"/></svg>
+            <span>生图</span>
+          </button>
+          <button class="tab" data-mode="视频" type="button">
+            <svg viewBox="0 0 20 20" class="ic"><rect x="2.8" y="5.4" width="10.4" height="9.2" rx="2.2"/><path d="M13.4 9.5 17 7.4v5.2l-3.6-2.1Z"/></svg>
+            <span>视频</span>
+          </button>
+          <button class="tab" data-mode="智能体" type="button">
+            <svg viewBox="0 0 20 20" class="ic"><circle cx="10" cy="7" r="2.7"/><path d="M4.9 16c.5-2.6 2.6-4.1 5.1-4.1s4.6 1.5 5.1 4.1"/></svg>
+            <span>智能体</span>
+          </button>
+        </div>
+
+        <div class="ctls">
+          <button class="ctl" id="ctl-model" type="button">
+            <span class="ctl-label">模型</span>
+            <span class="ctl-value" id="val-model">gpt-image-2</span>
+            <svg viewBox="0 0 16 16" class="chev"><path d="m4.5 6.5 3.5 3.6 3.5-3.6"/></svg>
+          </button>
+
+          <button class="ctl" id="ctl-size" type="button">
+            <span class="ctl-label">尺寸</span>
+            <span class="ctl-value" id="val-size">方图 1:1 · 1K</span>
+            <svg viewBox="0 0 16 16" class="chev"><path d="m4.5 6.5 3.5 3.6 3.5-3.6"/></svg>
+          </button>
+
+          <button class="ctl" id="ctl-quality" type="button">
+            <span class="ctl-label">质量</span>
+            <span class="ctl-value" id="val-quality">自动</span>
+            <svg viewBox="0 0 16 16" class="chev"><path d="m4.5 6.5 3.5 3.6 3.5-3.6"/></svg>
+          </button>
+
+          <button class="ctl" id="ctl-count" type="button">
+            <span class="ctl-label">数量</span>
+            <span class="ctl-value" id="val-count">1</span>
+            <svg viewBox="0 0 16 16" class="chev"><path d="m4.5 6.5 3.5 3.6 3.5-3.6"/></svg>
+          </button>
+
+          <input class="custom-size" id="customSize" type="text" inputmode="numeric"
+                 placeholder="自定义尺寸 如 1792x1024" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+
+      <div class="row row-2">
+        <button class="mini" id="ctl-group" type="button">
+          <span class="mini-label">生图组</span>
+          <span class="mini-value" id="val-group">默认组</span>
+          <svg viewBox="0 0 16 16" class="chev"><path d="m4.5 6.5 3.5 3.6 3.5-3.6"/></svg>
+        </button>
+
+        <button class="mini" id="ctl-format" type="button">
+          <span class="mini-value" id="val-format">GPT原生图片</span>
+          <svg viewBox="0 0 16 16" class="chev"><path d="m4.5 6.5 3.5 3.6 3.5-3.6"/></svg>
+        </button>
+
+        <button class="icon-btn" id="btn-refresh" type="button" title="刷新模型目录">
+          <svg viewBox="0 0 20 20" class="ic"><path d="M16.2 10a6.2 6.2 0 1 1-1.9-4.5"/><path d="M16.4 3.6v3.6h-3.6"/></svg>
+        </button>
+
+        <div class="spacer"></div>
+
+        <button class="ghost-btn" id="btn-settings" type="button" title="设置 API Key 与线路">
+          <svg viewBox="0 0 20 20" class="ic"><circle cx="7" cy="10" r="3.1"/><path d="M10.1 10H17"/><path d="M14.2 10v2.4"/><path d="M16.6 10v1.8"/></svg>
+          <span id="key-label">Key 未配置</span>
+        </button>
+      </div>
+
+      <div class="row row-3">
+        <button class="attach" id="btn-attach" type="button" title="上传参考图（PNG / JPEG / WebP）">
+          <svg viewBox="0 0 22 22" class="ic-lg"><path d="M14.6 5.9 8.2 12.3a2.05 2.05 0 0 0 2.9 2.9l6.4-6.4a3.4 3.4 0 0 0-4.8-4.8l-6.4 6.4a4.8 4.8 0 0 0 6.8 6.8l5.9-5.9"/></svg>
+        </button>
+
+        <div class="input-wrap">
+          <textarea id="prompt" rows="1" placeholder="描述你想要的画面；上传参考图即为图生图..." spellcheck="false"></textarea>
+        </div>
+
+        <button class="send" id="btn-send" type="button" title="生成（Enter）">
+          <svg viewBox="0 0 22 22" class="ic-lg"><path d="M4.4 11h12.4"/><path d="m11.9 6.1 4.9 4.9-4.9 4.9"/></svg>
+        </button>
+      </div>
+
+    </div>
+  </footer>
+
+  <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" multiple hidden>
+</div>
+
+<!-- 历史抽屉 -->
+<div class="drawer-mask" id="drawerMask" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="历史图片">
+  <div class="drawer-head">
+    <h2>历史图片</h2>
+    <span class="drawer-count" id="drawerCount">0 张</span>
+    <button class="x-btn" id="drawerClose" type="button" aria-label="关闭">
+      <svg viewBox="0 0 20 20" class="ic"><path d="m5.5 5.5 9 9"/><path d="m14.5 5.5-9 9"/></svg>
+    </button>
+  </div>
+
+  <div class="filters" id="histFilters">
+    <button class="fchip active" type="button" data-f="all">全部</button>
+    <button class="fchip" type="button" data-f="text">文生图</button>
+    <button class="fchip" type="button" data-f="image">图生图</button>
+    <button class="fchip" type="button" data-f="batch">批量</button>
+  </div>
+
+  <div class="drawer-body" id="drawerBody"></div>
+
+  <div class="drawer-foot">服务端图片最多保留 3 小时，查看后请及时下载。</div>
+</aside>
+
+<!-- 设置 -->
+<div class="modal-mask" id="settings" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="modal-head">
+      <h2 id="settings-title">连接设置</h2>
+      <button class="x-btn" id="settings-close" type="button" aria-label="关闭">
+        <svg viewBox="0 0 20 20" class="ic"><path d="m5.5 5.5 9 9"/><path d="m14.5 5.5-9 9"/></svg>
+      </button>
+    </div>
+
+    <p class="modal-desc">填写 Taufran 的 API Key（不是登录密码）。Key 只保存在本机浏览器，不会写进页面源码或分享链接。</p>
+
+    <label class="field">
+      <span>API Key</span>
+      <div class="field-row">
+        <input id="keyInput" type="password" placeholder="粘贴你的 API Key" autocomplete="off" spellcheck="false">
+        <button class="eye" id="keyEye" type="button" title="显示 / 隐藏">显示</button>
+      </div>
+    </label>
+
+    <label class="field">
+      <span>线路</span>
+      <select id="routeSelect" class="native-select"></select>
+    </label>
+
+    <div class="status" id="settings-status">尚未检测</div>
+
+    <div class="modal-actions">
+      <button class="text-btn danger" id="keyClear" type="button">清除 Key</button>
+      <div class="grow"></div>
+      <button class="text-btn" id="keyTest" type="button">测试连接</button>
+      <button class="primary-btn" id="keySave" type="button">保存</button>
+    </div>
+
+    <p class="modal-foot">
+      服务地址 ai.taufran.com ｜ Skill 目录已接入，模型与尺寸表实时读取。<br>
+      本站保存的图片最多保留 3 小时，生成后请及时下载。
+    </p>
+  </div>
+</div>
+
+<input type="file" id="targetInput" accept="image/png,image/jpeg,image/webp" multiple hidden>
+<input type="file" id="refInput" accept="image/png,image/jpeg,image/webp" multiple hidden>
+<div class="menu" id="menu" hidden></div>
+<div class="toasts" id="toasts"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

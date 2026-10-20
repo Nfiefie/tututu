@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+*.log
+tmp-assets/*.png
+tmp-assets/*.jpg
+*.out
+bin/cloudflared.exe
+public/*.map

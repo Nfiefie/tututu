@@ -1,0 +1,29 @@
+{
+  "service": "taufran-draw",
+  "sites": [
+    {
+      "name": "国际线路",
+      "baseUrl": "https://ai.taufran.com"
+    },
+    {
+      "name": "默认线路",
+      "baseUrl": "https://fast.taufran.com"
+    },
+    {
+      "name": "国内线路",
+      "baseUrl": "https://cn.taufran.com"
+    },
+    {
+      "name": "测速线路",
+      "baseUrl": "https://speed.taufran.com"
+    },
+    {
+      "name": "IPv4线路",
+      "baseUrl": "https://v4.taufran.com"
+    },
+    {
+      "name": "IPv6线路",
+      "baseUrl": "https://v6.taufran.com"
+    }
+  ]
+}

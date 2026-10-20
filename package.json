@@ -1,0 +1,19 @@
+{
+  "name": "taufran-draw-web",
+  "version": "1.0.0",
+  "description": "Taufran 绘图工作台 - 本地代理 + Web UI",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["draw", "ai", "taufran"],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git"
+  }
+}
