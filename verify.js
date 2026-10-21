@@ -1,0 +1,10 @@
+const fs = require('fs');
+const c = fs.readFileSync('public/app.js', 'utf8');
+const lines = c.split('\n');
+[17,18,19,20,21,22,23,24,25,26,27].forEach(n => console.log(n + ': ' + (lines[n-1]||'')));
+console.log('---renderControls---');
+let i = c.indexOf('function renderControls');
+console.log(c.slice(i, i+700));
+console.log('---sizeLabel---');
+let j = c.indexOf('function sizeLabel');
+console.log(c.slice(j, j+450));

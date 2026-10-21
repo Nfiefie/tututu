@@ -16,13 +16,19 @@
   };
 
   const RATIO_NAME = {
-    '1:1': '方图',
-    '16:9': '横图',
-    '9:16': '竖图',
-    '4:3': '横图',
-    '3:4': '竖图',
-    '3:2': '横图',
-    '2:3': '竖图',
+    '1:1': '方图 1:1',
+    '16:9': '横图 16:9',
+    '9:16': '竖图 9:16',
+    '4:3': '横图 4:3',
+    '3:4': '竖图 3:4',
+    '3:2': '横图 3:2',
+    '2:3': '竖图 2:3',
+  };
+
+  const TIER_NAME = {
+    '1K': '1K 1080p',
+    '2K': '2K 高清',
+    '4K': '4K 超清',
   };
 
   const RATIO_CLASS = {
@@ -309,7 +315,7 @@
     }
     const p = currentPreset();
     if (!p) return '—';
-    return `${RATIO_NAME[p.ratio] || ''} ${p.ratio} · ${p.tier}`;
+    return `${RATIO_NAME[p.ratio] || p.ratio} · ${p.tier}`;
   }
 
   async function loadCatalog(notify = false) {
@@ -444,6 +450,8 @@
     $('val-size').textContent = sizeLabel();
     $('val-quality').textContent =
       '1K';
+    $('val-ratio').textContent = RATIO_NAME[S.ratio] || S.ratio;
+    $('val-resolution').textContent = S.tier;
     $('val-count').textContent = String(S.count);
     $('val-group').textContent = S.group;
     $('val-format').textContent = S.format;
@@ -571,8 +579,11 @@
     const items = [];
     const ratios = [...new Set(model.presets.map(p => p.ratio))];
     ratios.forEach((ratio) => {
+      const px = SIZE_TABLE[ratio] || null;
+      const row = px ? px[S.tier] || '' : '';
       items.push({
         label: RATIO_NAME[ratio] || ratio,
+        sub: px ? S.tier + ' ' + (row || '') : '',
         active: ratio === S.ratio,
         ratio,
       });
@@ -589,8 +600,10 @@
     const model = currentModel();
     if (!model) return;
     const tiers = [...new Set(model.presets.filter(p => p.ratio === S.ratio).map(p => p.tier))];
+    const px = SIZE_TABLE[S.ratio] || null;
     const items = tiers.map((tier) => ({
-      label: tier === '1K' ? '1K (1080p)' : tier === '2K' ? '2K 高清' : '4K 超清',
+      label: TIER_NAME[tier] || tier,
+      sub: px ? px[tier] : '',
       active: tier === S.tier,
       tier,
     }));
@@ -599,7 +612,7 @@
       S.customSizes = [];
       dom.customSize.value = '';
       renderControls();
-    }, { width: 200 });
+    }, { width: 220 });
   });
 
 $('ctl-count').addEventListener('click', (e) => {
