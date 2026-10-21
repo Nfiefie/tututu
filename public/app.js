@@ -76,7 +76,7 @@
     modelId: 'gpt-image-2',
     ratio: '1:1',
     tier: '1K',
-    custom: '',
+    customSizes: [],
     group: '默认组',
     count: 1,
     refs: [],
@@ -294,15 +294,18 @@
   }
 
   function resolveSize() {
-    if (S.custom) return S.custom;
+    if (S.customSizes.length) return S.customSizes;
     const p = currentPreset();
-    return p ? p.size : '1080x1080';
+    return p ? [p.size] : ['1080x1080'];
   }
 
   function sizeLabel() {
-    if (S.custom) {
-      const [w, h] = S.custom.split('x');
-      return `自定义 ${w}×${h}`;
+    if (S.customSizes.length) {
+      if (S.customSizes.length === 1) {
+        const [w, h] = S.customSizes[0].split('x');
+        return `自定义 ${w}×${h}`;
+      }
+      return `自定义 ${S.customSizes.length} 个尺寸`;
     }
     const p = currentPreset();
     if (!p) return '—';
@@ -445,11 +448,13 @@
     $('val-group').textContent = S.group;
     $('val-format').textContent = S.format;
 
-    if (S.custom) {
+    if (S.customSizes.length) {
       dom.customSize.classList.add('filled');
-      if (dom.customSize.value !== S.custom) dom.customSize.value = S.custom;
+      const joined = S.customSizes.join(', ');
+      if (dom.customSize.value.trim() !== joined) dom.customSize.value = joined;
     } else {
       dom.customSize.classList.remove('filled');
+      if (dom.customSize.value.trim()) dom.customSize.value = '';
     }
     dom.send.disabled = S.busy > 0;
     dom.attach.classList.toggle('has-ref', S.refs.length > 0);
@@ -467,26 +472,31 @@
 
   dom.customSize.addEventListener('input', () => {
     const raw = dom.customSize.value.trim().toLowerCase().replace(/[×*]/g, 'x');
-    const m = raw.match(/^(\d{2,5})\s*x\s*(\d{2,5})$/);
     if (!raw) {
-      S.custom = '';
-    } else if (m) {
+      S.customSizes = [];
+      renderControls();
+      return;
+    }
+    // 支持逗号或换行分隔多个尺寸
+    const parts = raw.split(/[\s,]+/).filter(Boolean);
+    const sizes = [];
+    for (const part of parts) {
+      const m = part.match(/^(\d{2,5})\s*x\s*(\d{2,5})$/);
+      if (!m) continue;
       const w = Number(m[1]);
       const h = Number(m[2]);
       if (w < 64 || h < 64 || w > 8192 || h > 8192) {
-        S.custom = '';
         toast('自定义尺寸需在 64–8192 像素之间', 'err', 2400);
-      } else {
-        S.custom = `${w}x${h}`;
+        continue;
       }
-    } else {
-      S.custom = '';
+      sizes.push(`${w}x${h}`);
     }
+    S.customSizes = sizes;
     renderControls();
   });
 
   dom.customSize.addEventListener('blur', () => {
-    if (!dom.customSize.value.trim()) S.custom = '';
+    if (!dom.customSize.value.trim()) S.customSizes = [];
     renderControls();
   });
 
@@ -594,7 +604,7 @@
           else toast('当前模型未开放该档位，已保留可用尺寸', 'err', 2400);
         }
         if (preset.count) S.count = preset.count;
-        S.custom = '';
+        S.customSizes = [];
         dom.customSize.value = '';
       }
       ensureTier();
@@ -1817,7 +1827,7 @@
       S.ratio = turn.ratio;
       S.tier = turn.tier;
     }
-    S.custom = '';
+    S.customSizes = [];
     dom.customSize.value = '';
 
     if (turn.kind === 'batch') {
