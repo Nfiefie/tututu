@@ -88,6 +88,9 @@
     batchTotal: 0,
     batchDone: 0,
     histFilter: 'all',
+    // 历史记录单独存储（刷新后不显示在主界面）
+    historyData: null,
+    selectedHistory: new Set(),
     maxRefBytes: 1024 * 1024,
     maxRefEdge: 1536,
   };
@@ -137,6 +140,9 @@
     drawerBody: $('drawerBody'),
     drawerCount: $('drawerCount'),
     histFilters: $('histFilters'),
+    batchSelectBtn: $('batchSelectBtn'),
+    batchDeleteBtn: $('batchDeleteBtn'),
+    selectedCount: $('selectedCount'),
   };
 
   /* ------------------------------ 工具 ------------------------------ */
@@ -1018,7 +1024,12 @@
       return;
     }
     add(`${S.targets.length} 张待修改`, 'b');
-    add(` · 预计提交 ${S.targets.length} 个任务${S.batchRefs.length ? `，每张附带 ${S.batchRefs.length} 张参考` : ''}`);
+    if (S.batchRefs.length) {
+      const paired = Math.min(S.targets.length, S.batchRefs.length);
+      const solo = S.targets.length - paired;
+      add(` · 与 ${S.batchRefs.length} 张参考图按位配对`, 'span');
+      if (solo > 0) add(`，其中 ${solo} 张无对应参考`);
+    }
   }
 
   function renderThumbList(box, list, kind) {
@@ -1129,6 +1140,19 @@
     const text = div('bubble-text');
     text.textContent = t.prompt;
     bubble.append(meta, text);
+    const withdrawBtn = div('bubble-withdraw');
+    withdrawBtn.className = 'h-withdraw';
+    withdrawBtn.title = '撤回这一轮的提示词与图片，重新填写';
+    withdrawBtn.innerHTML =
+      '<span class="h-w-text">撤回</span>' +
+      '<svg class="h-w-ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M4.5 7.5h9A3.5 3.5 0 0 1 17 11v0a3.5 3.5 0 0 1-3.5 3.5H8"/>' +
+      '<path d="M7 4.5 4 7.5l3 3"/></svg>';
+    withdrawBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      withdrawTurn(t);
+    });
+    bubble.appendChild(withdrawBtn);
     wrap.appendChild(bubble);
 
     /* --- 助手回复 --- */
@@ -1351,7 +1375,8 @@
 
     dom.prompt.value = '';
     autosize();
-    // 待修改图在提交期间留在上传区显示逐张进度；参考图立刻清空，避免误用
+    // 待修改图在提交期间留在上传区显示逐张进度；
+    // 参考图已按 index 固化进 turn.refs 并在各任务提交时消费，这里清空避免误用
     S.targets = targets.slice();
     S.batchRefs = [];
     renderBatch();
@@ -1411,21 +1436,20 @@
     return '';
   }
 
-  // 批量模式里每个任务实际会带 1 张待修改图 + N 张参考图，
-  // 校验必须按这个真实图片数算，否则单图模型会被多图静默拒绝。
+  // 批量模式按位配对：第 i 张待改图带第 i 张参考图，
+  // 没有对应参考图的任务只提交待改图本身。
+  // 多图能力校验按单个任务的真实图片数（1 或 2 张）算。
   function validateBatch(model) {
     const caps = model.caps || {};
     if (!S.targets.length) return '请先上传要修改的图片';
     if (!caps.canEdit) return `${model.name} 不支持改图，请切换到支持改图的模型`;
     if (!S.batchRefs.length) return '';
-    const perJob = 1 + S.batchRefs.length;
-    if (!caps.canMultiReference) {
-      return S.batchRefs.length === 1
-        ? `${model.name} 只开放单图修改，1 张待修改图 + 1 张参考图无法同时提交，请先移除参考图`
-        : `${model.name} 不支持多图参考，无法在改图任务里附带 ${S.batchRefs.length} 张参考图`;
+    // 配对模式下每个任务要么 1 张图（无参考），要么 2 张图（待改+参考）
+    // 只有当某个任务真的携带 2 张图时才需要检查多图能力
+    const pairedJobs = Math.min(S.targets.length, S.batchRefs.length);
+    if (pairedJobs > 0 && !caps.canMultiReference) {
+      return `${model.name} 不支持多图参考，配对后每个任务需要 2 张图（待改 + 参考）`;
     }
-    const max = caps.maxReferenceImages || 0;
-    if (max && perJob > max) return `${model.name} 每个任务最多 ${max} 张图，当前需要 ${perJob} 张`;
     return '';
   }
 
@@ -1535,9 +1559,9 @@
     if (turn.kind === 'batch') {
       const target = (turn.targets || [])[index];
       if (target && target.dataUrl) imageUrls.push(target.dataUrl);
-      (turn.refs || []).forEach((r) => {
-        if (r.dataUrl) imageUrls.push(r.dataUrl);
-      });
+      // 批量改图按位配对：第 index 张待改图只配第 index 张参考图。
+      const ref = (turn.refs || [])[index];
+      if (ref && ref.dataUrl) imageUrls.push(ref.dataUrl);
     } else {
       (turn.refs || []).forEach((r) => {
         if (r.dataUrl) imageUrls.push(r.dataUrl);
@@ -1876,7 +1900,12 @@
 
   function historyEntries(filter) {
     const out = [];
-    S.turns.forEach((t) => {
+    // 合并当前会话的记录和刷新前保存的历史记录
+    const allTurns = [...(S.historyData || []), ...S.turns];
+    const seen = new Set();
+    allTurns.forEach((t) => {
+      if (seen.has(t.id)) return;
+      seen.add(t.id);
       t.jobs.forEach((j) => {
         if (j.status !== 'done') return;
         const kind = t.kind === 'batch' ? 'batch' : t.refs && t.refs.length ? 'image' : 'text';
@@ -1890,7 +1919,11 @@
 
   function countHistory() {
     let n = 0;
-    S.turns.forEach((t) => {
+    const allTurns = [...(S.historyData || []), ...S.turns];
+    const seen = new Set();
+    allTurns.forEach((t) => {
+      if (seen.has(t.id)) return;
+      seen.add(t.id);
       t.jobs.forEach((j) => {
         if (j.status === 'done') n += 1;
       });
@@ -1914,6 +1947,7 @@
     return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   }
 
+  // 批量选择/删除功能
   function openDrawer() {
     renderDrawer();
     dom.drawer.hidden = false;
@@ -1934,6 +1968,42 @@
   $('drawerClose').addEventListener('click', closeDrawer);
   dom.drawerMask.addEventListener('click', closeDrawer);
 
+  // 批量选择/删除功能
+  if (dom.batchSelectBtn) {
+    dom.batchSelectBtn.addEventListener('click', () => {
+      const items = historyEntries(S.histFilter);
+      const checkboxes = dom.drawerBody.querySelectorAll('.hist-checkbox');
+      const allChecked = Array.from(checkboxes).every((cb) => cb.checked);
+      
+      if (allChecked) {
+        // 取消全选
+        checkboxes.forEach((cb) => (cb.checked = false));
+        items.forEach((item) => {
+          const key = `${item.turn.id}:${item.job.requestId || ''}`;
+          S.selectedHistory.delete(key);
+        });
+      } else {
+        // 全选
+        checkboxes.forEach((cb) => (cb.checked = true));
+        items.forEach((item) => {
+          const key = `${item.turn.id}:${item.job.requestId || ''}`;
+          S.selectedHistory.add(key);
+        });
+      }
+      
+      updateSelectionUI();
+    });
+  }
+  
+  if (dom.batchDeleteBtn) {
+    dom.batchDeleteBtn.addEventListener('click', () => {
+      if (S.selectedHistory.size === 0) return;
+      if (!confirm(`确定要删除选中的 ${S.selectedHistory.size} 张图片吗？此操作不可恢复。`)) return;
+      
+      deleteHistoryEntries();
+    });
+  }
+  
   dom.histFilters.addEventListener('click', (e) => {
     const chip = e.target.closest('.fchip');
     if (!chip) return;
@@ -1979,6 +2049,14 @@
   function histCell(entry) {
     const { turn, job, kind } = entry;
     const cell = div('hist-cell');
+    
+    // 添加多选复选框
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'hist-checkbox';
+    checkbox.title = '选择这张图片';
+    cell.appendChild(checkbox);
+    
     if (job.imageUrl || job.historyId) {
       const img = document.createElement('img');
       img.alt = turn.prompt.slice(0, 40);
@@ -1998,12 +2076,23 @@
       ph.title = '本机只保留了任务编号，图片需要重新生成或从服务端取回';
       cell.appendChild(ph);
     }
+    
     cell.addEventListener('click', (e) => {
       if (e.target.closest('.h-btn')) return;
+      if (e.target === checkbox) return;
+
       ensureImage(turn, job).then((url) => {
         if (url) openLightbox(url);
       });
     });
+    
+    // 复选框变化事件
+    checkbox.addEventListener('change', () => {
+      updateSelectionUI();
+    });
+    
+    // 记录归属条目，供多选与批量删除直接取用
+    cell._entry = { turn, job };
 
     const tag = document.createElement('span');
     tag.className = 'h-kind';
@@ -2022,9 +2111,71 @@
         await addHistoryImageToBatch(turn, job, url);
       });
     }));
+    tools.appendChild(hTool('重新发送', 'M10 4.5v6H7M10 4.5 8 6.5M10.5 11l2 2', () => withdrawTurn(turn)));
     tools.appendChild(hTool('下载', 'M10 3.5v8M6.5 8.5 10 12l3.5-3.5M4.5 15.5h11', () => downloadJob(turn, job)));
     cell.appendChild(tools);
+    
+    // 添加单独删除按钮
+    const deleteBtn = hTool('删除', 'M14.5 6.5l-9 9M6.5 6.5l9 9', () => {
+      if (confirm(`确定要删除这张图片吗？`)) {
+        deleteHistoryEntries([{ turn, job }]);
+      }
+    });
+    deleteBtn.className = 'h-btn delete-only';
+    cell.appendChild(deleteBtn);
+    
     return cell;
+  }
+
+  function updateSelectionUI() {
+    const checkboxes = dom.drawerBody.querySelectorAll('.hist-checkbox:checked');
+    const count = checkboxes.length;
+    
+    if (dom.selectedCount) dom.selectedCount.textContent = String(count);
+    if (dom.batchDeleteBtn) dom.batchDeleteBtn.disabled = count === 0;
+    
+    // 更新全选按钮文本
+    const totalCheckboxes = dom.drawerBody.querySelectorAll('.hist-checkbox').length;
+    if (dom.batchSelectBtn) {
+      dom.batchSelectBtn.textContent = count === totalCheckboxes && totalCheckboxes > 0 ? '取消全选' : '全选';
+    }
+    
+    // 更新选中集合
+    S.selectedHistory.clear();
+    checkboxes.forEach((cb) => {
+      const cell = cb.closest('.hist-cell');
+      if (cell && cell._entry) {
+        S.selectedHistory.add(cell._entry);
+      }
+    });
+  }
+
+  function deleteHistoryEntries(items) {
+    const toDelete = items || Array.from(S.selectedHistory).map((key) => {
+      return key; // _entry 就是 {turn, job}
+    }).filter(Boolean);
+    
+    if (!toDelete.length) return;
+    
+    toDelete.forEach(({ turn, job }) => {
+      const idx = turn.jobs.indexOf(job);
+      if (idx > -1) {
+        turn.jobs.splice(idx, 1);
+      }
+      if (turn.jobs.length === 0) {
+        const tIdx = S.turns.indexOf(turn);
+        if (tIdx > -1) S.turns.splice(tIdx, 1);
+      }
+    });
+    
+    // 清空选中状态
+    S.selectedHistory.clear();
+    persistTurns();
+    updateHistoryBadge();
+    
+    // 重新渲染
+    renderDrawer();
+    toast(`已删除 ${toDelete.length} 张图片`, 'ok', 2400);
   }
 
   function hTool(title, d, onClick) {
@@ -2073,7 +2224,28 @@
 
   function persistTurns() {
     try {
-      const data = S.turns.slice(-16).map((t) => ({
+      // 合并历史记录与当前会话，去重后持久化（避免历史被覆盖丢失）
+      const all = [...(S.historyData || []), ...S.turns];
+      const seen = new Set();
+      const merged = [];
+      for (let k = all.length - 1; k >= 0; k--) {
+        const t = all[k];
+        if (seen.has(t.id)) continue;
+        seen.add(t.id);
+        merged.push(t);
+        if (merged.length >= 16) break;
+      }
+      merged.reverse();
+      // 预算：图片 dataUrl 最多 3.6MB，超出时优先保留新条目
+      const budget = { left: 3600 * 1024 };
+      const pickDataUrl = (r) => {
+        const d = r.dataUrl || '';
+        if (!d) return '';
+        if (d.length > 768 * 1024 || d.length > budget.left) return '';
+        budget.left -= d.length;
+        return d;
+      };
+      const data = merged.map((t) => ({
         id: t.id,
         at: t.at,
         keyFp: t.keyFp,
@@ -2086,8 +2258,8 @@
         ratio: t.ratio,
         tier: t.tier,
         persona: t.persona,
-        refs: (t.refs || []).slice(0, 4).map((r) => ({ name: r.name, thumb: r.thumb, w: r.w, h: r.h })),
-        targets: (t.targets || []).slice(0, 20).map((r) => ({ name: r.name, thumb: r.thumb, w: r.w, h: r.h })),
+        refs: (t.refs || []).slice(0, 4).map((r) => ({ name: r.name, thumb: r.thumb, w: r.w, h: r.h, dataUrl: pickDataUrl(r) })),
+        targets: (t.targets || []).slice(0, 20).map((r) => ({ name: r.name, thumb: r.thumb, w: r.w, h: r.h, dataUrl: pickDataUrl(r) })),
         jobs: t.jobs.map((j) => ({
           index: j.index,
           requestId: j.requestId,
@@ -2130,7 +2302,8 @@
       const raw = JSON.parse(localStorage.getItem(LS.turns) || '[]');
       if (!Array.isArray(raw)) return;
       const fp = fingerprint(S.key);
-      S.turns = raw
+      // 加载历史数据到 historyData（用于历史记录抽屉）
+      S.historyData = raw
         .filter((t) => !t.keyFp || t.keyFp === fp)
         .map((t) => ({
           ...t,
@@ -2138,9 +2311,29 @@
             targets: (t.targets || []).map((r) => ({ ...r })),
           jobs: (t.jobs || []).map((j) => ({ ...j, _el: null })),
         }));
+      
+      // 主界面清空（刷新后不显示主界面内容，只在历史记录里查看）
+      S.turns = [];
     } catch {
+      S.historyData = [];
       S.turns = [];
     }
+  }
+
+  function withdrawTurn(turn) {
+    if (!turn) return;
+    if (S.historyData && S.historyData.includes(turn)) {
+      S.historyData = S.historyData.filter((t) => t !== turn);
+    }
+    if (!S.turns.includes(turn)) S.turns.unshift(turn);
+    S.selectedHistory.clear();
+    refill(turn);
+    renderThread();
+    renderDrawer();
+    persistTurns();
+    closeDrawer();
+    toast('已撤回这一轮的提示词与图片，可修改后重新发送', 'ok', 2600);
+    setTimeout(() => dom.prompt.focus(), 40);
   }
 
   function resumePending() {

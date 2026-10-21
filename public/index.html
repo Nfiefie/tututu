@@ -178,8 +178,14 @@
 <div class="drawer-mask" id="drawerMask" hidden></div>
 <aside class="drawer" id="drawer" hidden aria-label="历史图片">
   <div class="drawer-head">
-    <h2>历史图片</h2>
-    <span class="drawer-count" id="drawerCount">0 张</span>
+        <div class="drawer-title">
+          <h2>历史图片</h2>
+          <span class="drawer-count" id="drawerCount">0 张</span>
+        </div>
+        <div class="drawer-toolbar">
+          <button id="batchSelectBtn" type="button" class="btn-chip">全选</button>
+          <button id="batchDeleteBtn" type="button" class="btn-chip danger" disabled>删除 (<span id="selectedCount">0</span>)</button>
+        </div>
     <button class="x-btn" id="drawerClose" type="button" aria-label="关闭">
       <svg viewBox="0 0 20 20" class="ic"><path d="m5.5 5.5 9 9"/><path d="m14.5 5.5-9 9"/></svg>
     </button>
