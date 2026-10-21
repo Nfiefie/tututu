@@ -440,7 +440,7 @@
     $('val-model').textContent = model ? model.name : '加载中…';
     $('val-size').textContent = sizeLabel();
     $('val-quality').textContent =
-      S.custom ? '自定义' : S.tier === '1K' ? '自动' : S.tier === '2K' ? '高清 2K' : '超清 4K';
+      '1K';
     $('val-count').textContent = String(S.count);
     $('val-group').textContent = S.group;
     $('val-format').textContent = S.format;
@@ -518,63 +518,42 @@
   });
 
   /* 尺寸 */
-  $('ctl-size').addEventListener('click', (e) => {
-    const model = currentModel();
-    if (!model) return;
-    const items = [];
-    let lastRatio = '';
-    model.presets.forEach((p) => {
-      if (p.ratio !== lastRatio) {
-        lastRatio = p.ratio;
-        items.push({ title: `${RATIO_NAME[p.ratio] || ''} ${p.ratio}` });
-      }
-      items.push({
-        label: `${p.tier === '1K' ? '1080p' : p.tier} · ${p.size.replace('x', ' × ')}`,
-        hint: p.price ? money(p.price) : '',
-        active: p.ratio === S.ratio && p.tier === S.tier && !S.custom,
-        ratio: p.ratio,
-        tier: p.tier,
-      });
-    });
-    openMenu(e.currentTarget, items, (it) => {
-      S.ratio = it.ratio;
-      S.tier = it.tier;
-      S.custom = '';
-      dom.customSize.value = '';
-      renderControls();
-    }, { width: 260 });
-  });
 
-  /* 质量 */
-  $('ctl-quality').addEventListener('click', (e) => {
-    const defs = [
-      { label: '自动', sub: '跟随尺寸里的档位', tier: 'auto' },
-      { label: '标准 1080p', tier: '1K' },
-      { label: '高清 2K', tier: '2K' },
-      { label: '超清 4K', tier: '4K' },
-    ];
-    const items = defs.map((d) => {
-      const ok = d.tier === 'auto' || tierAvailable(d.tier);
-      return {
-        label: d.label,
-        sub: d.sub,
-        tier: d.tier,
-        disabled: !ok,
-        active:
-          (d.tier === 'auto' && S.tier === '1K' && !S.custom) || (d.tier !== 'auto' && S.tier === d.tier),
-        hint: ok ? '' : '该模型未开放',
-      };
-    });
-    openMenu(e.currentTarget, items, (it) => {
-      S.custom = '';
-      dom.customSize.value = '';
-      if (it.tier !== 'auto') S.tier = it.tier;
-      ensureTier();
-      renderControls();
-    }, { width: 230 });
-  });
 
-  /* 数量 */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   $('ctl-count').addEventListener('click', (e) => {
     const items = [1, 2, 3, 4].map((n) => ({
       label: `${n} 张`,
