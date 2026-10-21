@@ -564,7 +564,45 @@
 
 
 
-  $('ctl-count').addEventListener('click', (e) => {
+    /* 比例 */
+  $('ctl-ratio').addEventListener('click', (e) => {
+    const model = currentModel();
+    if (!model) return;
+    const items = [];
+    const ratios = [...new Set(model.presets.map(p => p.ratio))];
+    ratios.forEach((ratio) => {
+      items.push({
+        label: RATIO_NAME[ratio] || ratio,
+        active: ratio === S.ratio,
+        ratio,
+      });
+    });
+    openMenu(e.currentTarget, items, (it) => {
+      S.ratio = it.ratio;
+      ensureTier();
+      renderControls();
+    }, { width: 200 });
+  });
+
+  /* 分辨率 */
+  $('ctl-resolution').addEventListener('click', (e) => {
+    const model = currentModel();
+    if (!model) return;
+    const tiers = [...new Set(model.presets.filter(p => p.ratio === S.ratio).map(p => p.tier))];
+    const items = tiers.map((tier) => ({
+      label: tier === '1K' ? '1K (1080p)' : tier === '2K' ? '2K 高清' : '4K 超清',
+      active: tier === S.tier,
+      tier,
+    }));
+    openMenu(e.currentTarget, items, (it) => {
+      S.tier = it.tier;
+      S.customSizes = [];
+      dom.customSize.value = '';
+      renderControls();
+    }, { width: 200 });
+  });
+
+$('ctl-count').addEventListener('click', (e) => {
     const items = [1, 2, 3, 4].map((n) => ({
       label: `${n} 张`,
       sub: n > 1 ? '每张独立提交一次生成' : '',
