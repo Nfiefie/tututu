@@ -1,6 +1,6 @@
 /* ==========================================================
-   中矩视界 · 绘图工作台 前端逻辑
-   后端：本地代理 -> ai.taufran.com /api/draw/*
+   中矩视界 · 绘图工作�?前端逻辑
+   后端：本地代�?-> ai.taufran.com /api/draw/*
    ========================================================== */
 (() => {
   'use strict';
@@ -52,8 +52,8 @@
   };
 
   const GROUPS = {
-    默认组: null,
-    高清精修组: { tier: '4K' },
+    默认�? null,
+    高清精修�? { tier: '4K' },
     极速草稿组: { model: 'gpt-image-2', tier: '1K', count: 1 },
   };
 
@@ -70,7 +70,7 @@
     '<circle cx="8.6" cy="9.6" r="1.5"/>' +
     '<path d="M3.9 16.6 9 11.8l3.7 3.4 2.5-2.1 4.9 4.4"/></svg>';
 
-  /* ------------------------------ 状态 ------------------------------ */
+  /* ------------------------------ 状�?------------------------------ */
 
   const S = {
     key: localStorage.getItem(LS.key) || '',
@@ -83,7 +83,7 @@
     ratio: '1:1',
     tier: '1K',
     customSizes: [],
-    group: '默认组',
+    group: '默认�?,
     count: 1,
     refs: [],
     mode: 'single',
@@ -185,15 +185,15 @@
     return ratio + '|' + tier;
   }
 
-  // 目录价格是 0.015000000000000001 这类浮点结果，展示前统一裁掉尾数
+  // 目录价格�?0.015000000000000001 这类浮点结果，展示前统一裁掉尾数
   function money(n) {
     const v = Number(n);
     if (!isFinite(v)) return '';
     return '$' + (Math.round(v * 1e6) / 1e6).toString();
   }
 
-  // result.url 可能是站点相对路径（以 / 开头）。直接丢给 <img> 会被当成
-  // 本地 127.0.0.1 路径解析，必然 404，所以要补回服务地址。
+  // result.url 可能是站点相对路径（�?/ 开头）。直接丢�?<img> 会被当成
+  // 本地 127.0.0.1 路径解析，必�?404，所以要补回服务地址�?
   const DEFAULT_BASE = 'https://ai.taufran.com';
   function absImageUrl(u) {
     if (!u) return '';
@@ -214,7 +214,7 @@
     try {
       res = await fetch(path, Object.assign({}, opts, { headers }));
     } catch (e) {
-      const err = new Error('网络异常：' + e.message);
+      const err = new Error('网络异常�? + e.message);
       err.network = true;
       throw err;
     }
@@ -309,12 +309,12 @@
     if (S.customSizes.length) {
       if (S.customSizes.length === 1) {
         const [w, h] = S.customSizes[0].split('x');
-        return `自定义 ${w}×${h}`;
+        return `自定�?${w}×${h}`;
       }
-      return `自定义 ${S.customSizes.length} 个尺寸`;
+      return `自定�?${S.customSizes.length} 个尺寸`;
     }
     const p = currentPreset();
-    if (!p) return '—';
+    if (!p) return '�?;
     return `${RATIO_NAME[p.ratio] || p.ratio} · ${p.tier}`;
   }
 
@@ -342,7 +342,7 @@
         markKeyState('bad');
         if (notify) toast('Key 无效或额度不足：' + e.message, 'err');
       } else if (notify) {
-        toast('模型目录加载失败：' + e.message, 'err');
+        toast('模型目录加载失败�? + e.message, 'err');
       }
       if (!S.models.length) S.models = [];
       renderControls();
@@ -446,7 +446,7 @@
 
   function renderControls() {
     const model = currentModel();
-    $('val-model').textContent = model ? model.name : '加载中…';
+    $('val-model').textContent = model ? model.name : '加载中�?;
     $('val-size').textContent = sizeLabel();
     $('val-quality').textContent =
       '1K';
@@ -466,7 +466,7 @@
     }
     dom.send.disabled = S.busy > 0;
     dom.attach.classList.toggle('has-ref', S.refs.length > 0);
-    // 批量模式下每张待修改图各出 1 张，“数量”不参与
+    // 批量模式下每张待修改图各�?1 张，“数量”不参与
     $('ctl-count').hidden = S.mode === 'batch';
     $('val-count').textContent = S.mode === 'batch' ? String(S.targets.length) : String(S.count);
     updateHistoryBadge();
@@ -485,7 +485,7 @@
       renderControls();
       return;
     }
-    // 支持逗号或换行分隔多个尺寸
+    // 支持逗号或换行分隔多个尺�?
     const parts = raw.split(/[\s,]+/).filter(Boolean);
     const sizes = [];
     for (const part of parts) {
@@ -494,7 +494,7 @@
       const w = Number(m[1]);
       const h = Number(m[2]);
       if (w < 64 || h < 64 || w > 8192 || h > 8192) {
-        toast('自定义尺寸需在 64–8192 像素之间', 'err', 2400);
+        toast('自定义尺寸需�?64�?192 像素之间', 'err', 2400);
         continue;
       }
       sizes.push(`${w}x${h}`);
@@ -516,17 +516,17 @@
           sub: [
             `${m.supportedTiers.join(' / ')}`,
             m.minPrice ? `${money(m.minPrice)}/张` : '',
-            m.caps.canEdit ? '可改图' : '',
+            m.caps.canEdit ? '可改�? : '',
             m.caps.canMultiReference ? `多图 ${m.caps.maxReferenceImages || 0}` : '',
           ]
             .filter(Boolean)
-            .join(' ｜ '),
+            .join(' �?'),
           hint: m.available ? '' : '暂不可用',
           active: m.id === S.modelId,
           disabled: !m.available,
           id: m.id,
         }))
-      : [{ label: '目录加载中…', disabled: true }];
+      : [{ label: '目录加载中�?, disabled: true }];
 
     openMenu(e.currentTarget, items, (it) => {
       S.modelId = it.id;
@@ -577,12 +577,12 @@
     const model = currentModel();
     if (!model) return;
     const items = [];
-    // 获取当前模型支持的比例列表，并按「竖图→方图→横图」排序
+    // 获取当前模型支持的比例列表，并按「竖图→方图→横图」排�?
     const ratios = [...new Set(model.presets.map(p => p.ratio))];
     const order = {'9:16': 1, '3:4': 1, '2:3': 1, '1:1': 2, '4:3': 3, '3:2': 3, '16:9': 3};
     ratios.sort((a, b) => (order[a] || 0) - (order[b] || 0));
     
-    // 分组显示：先显示当前分类的所有比例
+    // 分组显示：先显示当前分类的所有比�?
     const currentCategory = order[S.ratio] || 0;
     const categoryRatios = ratios.filter(r => order[r] === currentCategory);
     const otherRatios = ratios.filter(r => order[r] !== currentCategory);
@@ -605,7 +605,7 @@
     }, { width: 200 });
   });
 
-  /* 分辨率 */
+  /* 分辨�?*/
   $('ctl-resolution').addEventListener('click', (e) => {
     const model = currentModel();
     if (!model) return;
@@ -628,7 +628,7 @@
 $('ctl-count').addEventListener('click', (e) => {
     const items = [1, 2, 3, 4].map((n) => ({
       label: `${n} 张`,
-      sub: n > 1 ? '每张独立提交一次生成' : '',
+      sub: n > 1 ? '每张独立提交一次生�? : '',
       active: S.count === n,
       n,
     }));
@@ -638,14 +638,14 @@ $('ctl-count').addEventListener('click', (e) => {
     }, { width: 210 });
   });
 
-  /* 生图组 */
+  /* 生图�?*/
   $('ctl-group').addEventListener('click', (e) => {
     const items = Object.keys(GROUPS).map((name) => ({
       label: name,
       sub:
-        name === '默认组'
+        name === '默认�?
           ? '沿用当前参数'
-          : name === '高清精修组'
+          : name === '高清精修�?
             ? '优先 4K 档位'
             : 'gpt-image-2 · 1K',
       active: S.group === name,
@@ -711,14 +711,14 @@ $('ctl-count').addEventListener('click', (e) => {
     if (!files.length) return;
     for (const file of files) {
       if (S.refs.length >= 14) {
-        toast('参考图最多 14 张', 'err');
+        toast('参考图最�?14 �?, 'err');
         break;
       }
       try {
         const ref = await prepareFile(file);
         S.refs.push(ref);
       } catch (e) {
-        toast(`${file.name}：${e.message}`, 'err');
+        toast(`${file.name}�?{e.message}`, 'err');
       }
     }
     renderRefs();
@@ -740,7 +740,7 @@ $('ctl-count').addEventListener('click', (e) => {
 
   async function prepareFile(file) {
     if (!/^image\/(png|jpeg|webp)$/i.test(file.type)) {
-      throw new Error('仅支持 PNG / JPEG / WebP');
+      throw new Error('仅支�?PNG / JPEG / WebP');
     }
     let bmp;
     try {
@@ -771,9 +771,9 @@ $('ctl-count').addEventListener('click', (e) => {
       quality -= 0.08;
       blob = await toBlob(canvas, type, quality);
     }
-    if (!blob || blob.size > limit) throw new Error('压缩后仍超过 1MB，请换更小的图');
+    if (!blob || blob.size > limit) throw new Error('压缩后仍超过 1MB，请换更小的�?);
 
-    // 72px 缩略图，用于会话记录与气泡展示
+    // 72px 缩略图，用于会话记录与气泡展�?
     const tScale = Math.min(1, 72 / Math.max(w, h));
     const tc = document.createElement('canvas');
     tc.width = Math.max(1, Math.round(w * tScale));
@@ -793,7 +793,7 @@ $('ctl-count').addEventListener('click', (e) => {
   }
 
   function renderRefs() {
-    // 批量模式下参考图有独立上传区，不再重复占用单次模式的参考图条
+    // 批量模式下参考图有独立上传区，不再重复占用单次模式的参考图�?
     if (S.mode === 'batch') {
       dom.refs.innerHTML = '';
       dom.refs.hidden = true;
@@ -826,7 +826,7 @@ $('ctl-count').addEventListener('click', (e) => {
       dom.refs.appendChild(item);
     });
     const hint = div('ref-hint');
-    hint.textContent = `${S.refs.length} 张参考图 · 提示词里用「图1 / 图2」对应编号`;
+    hint.textContent = `${S.refs.length} 张参考图 · 提示词里用「图1 / �?」对应编号`;
     dom.refs.appendChild(hint);
   }
 
@@ -884,16 +884,16 @@ $('ctl-count').addEventListener('click', (e) => {
     dom.attach.hidden = mode === 'batch';
     dom.prompt.placeholder =
       mode === 'batch'
-        ? '描述要应用在每一张待修改图上的修改要求...'
-        : '描述你想要的画面；上传参考图即为图生图...';
+        ? '描述要应用在每一张待修改图上的修改要�?..'
+        : '描述你想要的画面；上传参考图即为图生�?..';
     if (mode === 'batch') {
       renderBatch();
     }
-    // 两种模式的参考图各自存放，切模式只重画不互相清空：
-    // 单次模式的参考图条在批量模式下必须收起来。
+    // 两种模式的参考图各自存放，切模式只重画不互相清空�?
+    // 单次模式的参考图条在批量模式下必须收起来�?
     renderRefs();
     renderControls();
-    // 空状态文案随模式变化，只在还没有会话时才需要重画
+    // 空状态文案随模式变化，只在还没有会话时才需要重�?
     if (!S.turns.length) renderThread();
     if (mode === 'single' && leavingBatch) {
       toast(`${S.targets.length} 张待修改图已保留，切回批量修改即可继续`, '', 2800);
@@ -968,7 +968,7 @@ $('ctl-count').addEventListener('click', (e) => {
     if (S.mode !== 'batch') setMode('batch');
     for (const file of files) {
       if (S.targets.length >= 20) {
-        toast('单次批量最多 20 张待修改图', 'err');
+        toast('单次批量最�?20 张待修改�?, 'err');
         break;
       }
       try {
@@ -976,7 +976,7 @@ $('ctl-count').addEventListener('click', (e) => {
         const item = await prepareFile(file);
         S.targets.push({ ...item, status: '', error: '' });
       } catch (e) {
-        toast(`${file.name}：${e.message}`, 'err');
+        toast(`${file.name}�?{e.message}`, 'err');
       }
     }
     renderBatch();
@@ -988,7 +988,7 @@ $('ctl-count').addEventListener('click', (e) => {
     if (S.mode !== 'batch') setMode('batch');
     for (const file of files) {
       if (S.batchRefs.length >= 14) {
-        toast('参考图最多 14 张', 'err');
+        toast('参考图最�?14 �?, 'err');
         break;
       }
       try {
@@ -996,7 +996,7 @@ $('ctl-count').addEventListener('click', (e) => {
         const ref = await prepareFile(file);
         S.batchRefs.push(ref);
       } catch (e) {
-        toast(`${file.name}：${e.message}`, 'err');
+        toast(`${file.name}�?{e.message}`, 'err');
       }
     }
     renderBatch();
@@ -1020,15 +1020,15 @@ $('ctl-count').addEventListener('click', (e) => {
     const tHint = dom.targetHint;
     tHint.classList.remove('warn');
     if (!S.targets.length) {
-      tHint.textContent = '点击选择，或把图片拖进来 · 每张图单独生成 1 个任务';
+      tHint.textContent = '点击选择，或把图片拖进来 · 每张图单独生�?1 个任�?;
     } else {
-      tHint.textContent = `${S.targets.length} 张待修改 · 共提交 ${S.targets.length} 个独立任务`;
+      tHint.textContent = `${S.targets.length} 张待修改 · 共提�?${S.targets.length} 个独立任务`;
     }
 
     const rHint = dom.refHint;
     rHint.classList.remove('warn');
     if (!S.batchRefs.length) {
-      rHint.textContent = '所有待修改图共用这套参考 · 提示词里用「图1 / 图2」对应编号';
+      rHint.textContent = '所有待修改图共用这套参�?· 提示词里用「图1 / �?」对应编�?;
     } else if (model) {
       const perJob = 1 + S.batchRefs.length;
       const max = caps.maxReferenceImages || 0;
@@ -1036,10 +1036,10 @@ $('ctl-count').addEventListener('click', (e) => {
         rHint.textContent = `${model.name} 不支持多图参考，只传 1 张时会按单图修改处理`;
         rHint.classList.add('warn');
       } else if (max && perJob > max) {
-        rHint.textContent = `每个任务会带 ${perJob} 张图，超出 ${model.name} 的 ${max} 张上限`;
+        rHint.textContent = `每个任务会带 ${perJob} 张图，超�?${model.name} �?${max} 张上限`;
         rHint.classList.add('warn');
       } else {
-        rHint.textContent = `${S.batchRefs.length} 张参考 · 每个任务共 ${perJob} 张图（1 待改 + ${S.batchRefs.length} 参考）`;
+        rHint.textContent = `${S.batchRefs.length} 张参�?· 每个任务�?${perJob} 张图�? 待改 + ${S.batchRefs.length} 参考）`;
       }
     }
 
@@ -1060,13 +1060,13 @@ $('ctl-count').addEventListener('click', (e) => {
       const done = S.batchDone;
       add('批量进度 ', 'span');
       add(`${done} / ${S.batchTotal}`, 'b');
-      add(done >= S.batchTotal ? ' · 已全部提交' : ' · 正在逐张提交');
+      add(done >= S.batchTotal ? ' · 已全部提�? : ' · 正在逐张提交');
       return;
     }
 
     const model = currentModel();
     if (!S.targets.length) {
-      add('等待上传待修改图片');
+      add('等待上传待修改图�?);
       return;
     }
     if (model && !model.caps.canEdit) {
@@ -1077,8 +1077,8 @@ $('ctl-count').addEventListener('click', (e) => {
     if (S.batchRefs.length) {
       const paired = Math.min(S.targets.length, S.batchRefs.length);
       const solo = S.targets.length - paired;
-      add(` · 与 ${S.batchRefs.length} 张参考图按位配对`, 'span');
-      if (solo > 0) add(`，其中 ${solo} 张无对应参考`);
+      add(` · �?${S.batchRefs.length} 张参考图按位配对`, 'span');
+      if (solo > 0) add(`，其�?${solo} 张无对应参考`);
     }
   }
 
@@ -1098,7 +1098,7 @@ $('ctl-count').addEventListener('click', (e) => {
       }
       if (it.status === 'processing') {
         const flag = div('tflag');
-        flag.textContent = '生成中';
+        flag.textContent = '生成�?;
         node.appendChild(flag);
       } else if (it.status === 'failed') {
         const flag = div('tflag');
@@ -1131,11 +1131,11 @@ $('ctl-count').addEventListener('click', (e) => {
     mark.innerHTML = EMPTY_SVG;
     const a = document.createElement('strong');
     const batch = S.mode === 'batch';
-    a.textContent = batch ? '批量修改一批图片' : '描述你想要的画面';
+    a.textContent = batch ? '批量修改一批图�? : '描述你想要的画面';
     const b = document.createElement('span');
     b.textContent = batch
-      ? '分别上传要修改的图片和参考图，每张待改图会单独生成一个结果'
-      : '上传参考图即为图生图，可一次放入多张做组合参考';
+      ? '分别上传要修改的图片和参考图，每张待改图会单独生成一个结�?
+      : '上传参考图即为图生图，可一次放入多张做组合参�?;
     box.append(mark, a, b);
     return box;
   }
@@ -1162,12 +1162,12 @@ $('ctl-count').addEventListener('click', (e) => {
         thumbs.appendChild(img);
       });
       const more = div('count-more');
-      more.textContent = `改 ${(t.targets || []).length}`;
+      more.textContent = `�?${(t.targets || []).length}`;
       thumbs.appendChild(more);
       if ((t.refs || []).length) {
         const refTag = document.createElement('span');
         refTag.className = 'count-more';
-        refTag.textContent = `参 ${t.refs.length}`;
+        refTag.textContent = `�?${t.refs.length}`;
         thumbs.appendChild(refTag);
       }
       meta.appendChild(thumbs);
@@ -1192,7 +1192,7 @@ $('ctl-count').addEventListener('click', (e) => {
     bubble.append(meta, text);
     const withdrawBtn = div('bubble-withdraw');
     withdrawBtn.className = 'h-withdraw';
-    withdrawBtn.title = '撤回这一轮的提示词与图片，重新填写';
+    withdrawBtn.title = '撤回这一轮的提示词与图片，重新填�?;
     withdrawBtn.innerHTML =
       '<span class="h-w-text">撤回</span>' +
       '<svg class="h-w-ic" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -1281,7 +1281,7 @@ $('ctl-count').addEventListener('click', (e) => {
       const strong = document.createElement('strong');
       strong.textContent = j.status === 'timeout' ? '等待超时' : '生成失败';
       const msg = document.createElement('div');
-      msg.textContent = j.error || '任务未返回结果';
+      msg.textContent = j.error || '任务未返回结�?;
       box.append(strong, msg);
 
       const acts = div('acts');
@@ -1294,12 +1294,12 @@ $('ctl-count').addEventListener('click', (e) => {
       return card;
     }
 
-    // 生成中
+    // 生成�?
     const ph = div('card-ph ' + ratioClass(t.size));
     const gen = document.createElement('span');
     gen.className = 'gen-text';
     gen.innerHTML =
-      (j.status === 'loading' ? '读取图片' : '生成中') +
+      (j.status === 'loading' ? '读取图片' : '生成�?) +
       '<span class="dots"><i>.</i><i>.</i><i>.</i></span>';
     ph.appendChild(gen);
     card.appendChild(ph);
@@ -1325,9 +1325,9 @@ $('ctl-count').addEventListener('click', (e) => {
       j._el = node;
       return;
     }
-    // 首次渲染：这一轮会话还没画出来（任务对象在 renderThread 之后才创建）。
+    // 首次渲染：这一轮会话还没画出来（任务对象在 renderThread 之后才创建）�?
     if (!t._cards) {
-      // 会话尚未渲染到 DOM，先整体重建一次以拿到容器。
+      // 会话尚未渲染�?DOM，先整体重建一次以拿到容器�?
       renderThread();
       return;
     }
@@ -1354,8 +1354,8 @@ $('ctl-count').addEventListener('click', (e) => {
   /* ------------------------------ 批量执行 ------------------------------ */
 
   // 任务在服务端是异步完成的，提交循环早就结束了，但 pollJob/loadImage
-  // 之后才会把 job.status 改成 done/failed。上传区靠 batchIndex 找回原图，
-  // 用序号索引会在图片被移除后错位，所以每张待改图都记了自己的原始位置。
+  // 之后才会�?job.status 改成 done/failed。上传区�?batchIndex 找回原图�?
+  // 用序号索引会在图片被移除后错位，所以每张待改图都记了自己的原始位置�?
   function syncBatchTargets(turn) {
     if (!turn || turn.kind !== 'batch') return;
     const byIndex = new Map();
@@ -1383,11 +1383,11 @@ $('ctl-count').addEventListener('click', (e) => {
     renderBatch();
   }
 
-  // 每张待修改图一个独立任务，串行提交避免限流。
-  // 单张失败不影响其余图片，失败卡片可以直接重试。
+  // 每张待修改图一个独立任务，串行提交避免限流�?
+  // 单张失败不影响其余图片，失败卡片可以直接重试�?
   async function runBatch(model, prompt) {
     const size = resolveSize();
-    // 每轮重新编号：上一轮失败的图留在上传区里，带着旧 batchIndex 重跑会撞号
+    // 每轮重新编号：上一轮失败的图留在上传区里，带着�?batchIndex 重跑会撞�?
     const targets = S.targets.map((t, i) => ({ ...t, batchIndex: i }));
     S.targets = targets.slice();
     const refs = S.batchRefs.map((r) => ({ name: r.name, thumb: r.thumb, dataUrl: r.dataUrl, w: r.w, h: r.h }));
@@ -1398,7 +1398,7 @@ $('ctl-count').addEventListener('click', (e) => {
       keyFp: fingerprint(S.key),
       prompt,
       model: model.id,
-      size,
+      size: sizeStr,
       sizeLabel: sizeLabel(),
       mode: `批量修改 ×${targets.length}`,
       kind: 'batch',
@@ -1425,8 +1425,8 @@ $('ctl-count').addEventListener('click', (e) => {
 
     dom.prompt.value = '';
     autosize();
-    // 待修改图在提交期间留在上传区显示逐张进度；
-    // 参考图已按 index 固化进 turn.refs 并在各任务提交时消费，这里清空避免误用
+    // 待修改图在提交期间留在上传区显示逐张进度�?
+    // 参考图已按 index 固化�?turn.refs 并在各任务提交时消费，这里清空避免误�?
     S.targets = targets.slice();
     S.batchRefs = [];
     renderBatch();
@@ -1463,9 +1463,9 @@ $('ctl-count').addEventListener('click', (e) => {
     renderBatchState();
     const failed = turn.jobs.filter((j) => j.status === 'failed').length;
     if (failed) {
-      toast(`已提交 ${turn.jobs.length} 个任务，其中 ${failed} 张提交失败，可在卡片上重新生成`, 'err', 4600);
+      toast(`已提�?${turn.jobs.length} 个任务，其中 ${failed} 张提交失败，可在卡片上重新生成`, 'err', 4600);
     } else {
-      toast(`已提交 ${turn.jobs.length} 个任务，正在逐张生成`, 'ok', 2600);
+      toast(`已提�?${turn.jobs.length} 个任务，正在逐张生成`, 'ok', 2600);
     }
     updateHistoryBadge();
   }
@@ -1479,26 +1479,26 @@ $('ctl-count').addEventListener('click', (e) => {
     const max = caps.maxReferenceImages || 0;
     if (n === 1 && !caps.canEdit) return `${model.name} 暂不支持单图修改，请移除参考图或换模型`;
     if (n >= 2 && !caps.canMultiReference) return `${model.name} 不支持多图参考`;
-    if (max && n > max) return `${model.name} 最多 ${max} 张参考图`;
+    if (max && n > max) return `${model.name} 最�?${max} 张参考图`;
     if (caps.minReferenceImages && n < caps.minReferenceImages && n > 0) {
-      return `${model.name} 参考模式至少 ${caps.minReferenceImages} 张`;
+      return `${model.name} 参考模式至�?${caps.minReferenceImages} 张`;
     }
     return '';
   }
 
-  // 批量模式按位配对：第 i 张待改图带第 i 张参考图，
-  // 没有对应参考图的任务只提交待改图本身。
-  // 多图能力校验按单个任务的真实图片数（1 或 2 张）算。
+  // 批量模式按位配对：第 i 张待改图带第 i 张参考图�?
+  // 没有对应参考图的任务只提交待改图本身�?
+  // 多图能力校验按单个任务的真实图片数（1 �?2 张）算�?
   function validateBatch(model) {
     const caps = model.caps || {};
     if (!S.targets.length) return '请先上传要修改的图片';
     if (!caps.canEdit) return `${model.name} 不支持改图，请切换到支持改图的模型`;
     if (!S.batchRefs.length) return '';
-    // 配对模式下每个任务要么 1 张图（无参考），要么 2 张图（待改+参考）
-    // 只有当某个任务真的携带 2 张图时才需要检查多图能力
+    // 配对模式下每个任务要�?1 张图（无参考），要�?2 张图（待�?参考）
+    // 只有当某个任务真的携�?2 张图时才需要检查多图能�?
     const pairedJobs = Math.min(S.targets.length, S.batchRefs.length);
     if (pairedJobs > 0 && !caps.canMultiReference) {
-      return `${model.name} 不支持多图参考，配对后每个任务需要 2 张图（待改 + 参考）`;
+      return `${model.name} 不支持多图参考，配对后每个任务需�?2 张图（待�?+ 参考）`;
     }
     return '';
   }
@@ -1519,7 +1519,7 @@ $('ctl-count').addEventListener('click', (e) => {
 
     const model = currentModel();
     if (!model) {
-      toast('模型目录还没加载完成，请稍候或点刷新', 'err');
+      toast('模型目录还没加载完成，请稍候或点刷�?, 'err');
       return;
     }
     if (!model.available) {
@@ -1544,15 +1544,16 @@ $('ctl-count').addEventListener('click', (e) => {
     }
 
     const size = resolveSize();
+    const sizeStr = Array.isArray(size) ? size[0] : size;
     const turn = {
       id: 'turn-' + Date.now().toString(36),
       at: Date.now(),
       keyFp: fingerprint(S.key),
       prompt,
       model: model.id,
-      size,
+      size: sizeStr,
       sizeLabel: sizeLabel(),
-      mode: S.refs.length ? `图生图 ×${S.refs.length}` : '文生图',
+      mode: S.refs.length ? `图生�?×${S.refs.length}` : '文生�?,
       ratio: S.ratio,
       tier: S.tier,
       refs: S.refs.map((r) => ({ name: r.name, thumb: r.thumb, dataUrl: r.dataUrl, w: r.w, h: r.h })),
@@ -1573,15 +1574,15 @@ $('ctl-count').addEventListener('click', (e) => {
     persistTurns();
 
     for (let i = 0; i < S.count; i += 1) {
-      // 顺序提交，避免瞬时并发触发限流
+      // 顺序提交，避免瞬时并发触发限�?
       // eslint-disable-next-line no-await-in-loop
       await submitOne(turn, i);
     }
   }
 
   async function submitOne(turn, index, existing) {
-    // existing 非空表示“重新生成”：复用原槽位，把失败卡片原地换成新任务，
-    // 否则会出现一张失败卡片 + 一张新卡片并排的错位。
+    // existing 非空表示“重新生成”：复用原槽位，把失败卡片原地换成新任务�?
+    // 否则会出现一张失败卡�?+ 一张新卡片并排的错位�?
     const job = existing || {
       index,
       requestId: newRequestId(),
@@ -1598,7 +1599,7 @@ $('ctl-count').addEventListener('click', (e) => {
       job.error = '';
       job.note = '';
       job.createdAt = Date.now();
-      // 保留 job._el，paintCard 会用它把失败卡片原地替换成新的占位卡片
+      // 保留 job._el，paintCard 会用它把失败卡片原地替换成新的占位卡�?
       job._polling = false;
       job.imageUrl = '';
       job.blob = null;
@@ -1609,7 +1610,7 @@ $('ctl-count').addEventListener('click', (e) => {
     if (turn.kind === 'batch') {
       const target = (turn.targets || [])[index];
       if (target && target.dataUrl) imageUrls.push(target.dataUrl);
-      // 批量改图按位配对：第 index 张待改图只配第 index 张参考图。
+      // 批量改图按位配对：第 index 张待改图只配�?index 张参考图�?
       const ref = (turn.refs || [])[index];
       if (ref && ref.dataUrl) imageUrls.push(ref.dataUrl);
     } else {
@@ -1628,7 +1629,7 @@ $('ctl-count').addEventListener('click', (e) => {
       model: turn.model,
       prompt: turn.prompt,
       size: turn.size,
-      // 新服务端要求同时给出成品尺寸，只发 size 会被判为“该分辨率未配置”
+      // 新服务端要求同时给出成品尺寸，只�?size 会被判为“该分辨率未配置�?
       outputSize: turn.size,
       n: 1,
       stream: false,
@@ -1641,10 +1642,10 @@ $('ctl-count').addEventListener('click', (e) => {
       job.status = 'processing';
     } catch (e) {
       if (e.network) {
-        // 提交响应丢失：绝不重发，按 requestId 找回原任务
+        // 提交响应丢失：绝不重发，�?requestId 找回原任�?
         job.status = 'processing';
-        job.note = '提交响应丢失，正在按 requestId 找回原任务';
-        toast('提交响应丢失，正在按原 requestId 找回任务（不会重复生成）', 'err', 4200);
+        job.note = '提交响应丢失，正在按 requestId 找回原任�?;
+        toast('提交响应丢失，正在按�?requestId 找回任务（不会重复生成）', 'err', 4200);
       } else if (e.status === 401 || e.status === 403) {
         job.status = 'failed';
         job.error = 'API Key 无效或额度不足：' + e.message;
@@ -1685,7 +1686,7 @@ $('ctl-count').addEventListener('click', (e) => {
       if (Date.now() > deadline) {
         job._polling = false;
         job.status = 'timeout';
-        job.error = '本次等待已到 12 分钟，任务可能仍在后台生成。可点「继续查询」只查询原任务，不会重复生成。';
+        job.error = '本次等待已到 12 分钟，任务可能仍在后台生成。可点「继续查询」只查询原任务，不会重复生成�?;
         paintCard(turn, job);
         persistTurns();
         syncBatchTargets(turn);
@@ -1756,7 +1757,7 @@ $('ctl-count').addEventListener('click', (e) => {
     const historyId = result.historyId;
 
     if (!historyId && result.url) {
-      // 直接给了图片地址：相对路径要补回服务地址，否则会被当成本地路径
+      // 直接给了图片地址：相对路径要补回服务地址，否则会被当成本地路�?
       job.imageUrl = absImageUrl(result.url);
       job.status = 'done';
       job.outSize = result.width && result.height ? `${result.width} × ${result.height}` : '';
@@ -1768,7 +1769,7 @@ $('ctl-count').addEventListener('click', (e) => {
 
     if (!historyId) {
       job.status = 'failed';
-      job.error = '任务完成但没有返回图片编号';
+      job.error = '任务完成但没有返回图片编�?;
       paintCard(turn, job);
       persistTurns();
       syncBatchTargets(turn);
@@ -1780,7 +1781,7 @@ $('ctl-count').addEventListener('click', (e) => {
       if (S.base) headers['x-taufran-base'] = S.base;
       const response = await fetch(`/api/draw/history/${encodeURIComponent(historyId)}/image`, { headers });
       if (!response.ok) {
-        throw new Error(response.status === 410 ? '图片已过期（本站保留 3 小时）' : `图片暂时无法读取：${response.status}`);
+        throw new Error(response.status === 410 ? '图片已过期（本站保留 3 小时�? : `图片暂时无法读取�?{response.status}`);
       }
       const blob = await response.blob();
       if (!['image/png', 'image/jpeg', 'image/webp'].includes(blob.type)) {
@@ -1845,11 +1846,11 @@ $('ctl-count').addEventListener('click', (e) => {
       if (!blob && job.historyId) {
         const headers = { Authorization: 'Bearer ' + S.key };
         const r = await fetch(`/api/draw/history/${encodeURIComponent(job.historyId)}/image`, { headers });
-        if (!r.ok) throw new Error('图片读取失败：' + r.status);
+        if (!r.ok) throw new Error('图片读取失败�? + r.status);
         blob = await r.blob();
         job.blob = blob;
       }
-      if (!blob) throw new Error('图片数据不可用');
+      if (!blob) throw new Error('图片数据不可�?);
 
       let out = blob;
       let ext = mimeToExt(blob.type);
@@ -1865,9 +1866,9 @@ $('ctl-count').addEventListener('click', (e) => {
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-      toast('已开始下载原图', 'ok', 1800);
+      toast('已开始下载原�?, 'ok', 1800);
     } catch (e) {
-      toast('下载失败：' + e.message, 'err');
+      toast('下载失败�? + e.message, 'err');
     }
   }
 
@@ -1936,9 +1937,9 @@ $('ctl-count').addEventListener('click', (e) => {
       h: r.h || 0,
     }));
     if (turn.refs && turn.refs.length && !S.refs.length) {
-      toast('参考图不在本机记录中，已回填提示词与参数', '', 3000);
+      toast('参考图不在本机记录中，已回填提示词与参�?, '', 3000);
     } else {
-      toast('已回填提示词与参数', 'ok', 1800);
+      toast('已回填提示词与参�?, 'ok', 1800);
     }
 
     renderRefs();
@@ -1989,7 +1990,7 @@ $('ctl-count').addEventListener('click', (e) => {
     if (same(d, today)) return '今天';
     const yest = new Date(today.getTime() - 86400000);
     if (same(d, yest)) return '昨天';
-    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+    return `${d.getFullYear()}�?{d.getMonth() + 1}�?{d.getDate()}日`;
   }
 
   function timeLabel(ts) {
@@ -2026,14 +2027,14 @@ $('ctl-count').addEventListener('click', (e) => {
       const allChecked = Array.from(checkboxes).every((cb) => cb.checked);
       
       if (allChecked) {
-        // 取消全选
+        // 取消全�?
         checkboxes.forEach((cb) => (cb.checked = false));
         items.forEach((item) => {
           const key = `${item.turn.id}:${item.job.requestId || ''}`;
           S.selectedHistory.delete(key);
         });
       } else {
-        // 全选
+        // 全�?
         checkboxes.forEach((cb) => (cb.checked = true));
         items.forEach((item) => {
           const key = `${item.turn.id}:${item.job.requestId || ''}`;
@@ -2048,7 +2049,7 @@ $('ctl-count').addEventListener('click', (e) => {
   if (dom.batchDeleteBtn) {
     dom.batchDeleteBtn.addEventListener('click', () => {
       if (S.selectedHistory.size === 0) return;
-      if (!confirm(`确定要删除选中的 ${S.selectedHistory.size} 张图片吗？此操作不可恢复。`)) return;
+      if (!confirm(`确定要删除选中�?${S.selectedHistory.size} 张图片吗？此操作不可恢复。`)) return;
       
       deleteHistoryEntries();
     });
@@ -2073,8 +2074,8 @@ $('ctl-count').addEventListener('click', (e) => {
     if (!items.length) {
       const empty = div('hist-empty');
       empty.textContent = S.turns.length
-        ? '当前筛选下还没有生成完成的图片。'
-        : '还没有生成记录。完成一次生图后，图片会自动出现在这里。';
+        ? '当前筛选下还没有生成完成的图片�?
+        : '还没有生成记录。完成一次生图后，图片会自动出现在这里�?;
       dom.drawerBody.appendChild(empty);
       return;
     }
@@ -2122,7 +2123,7 @@ $('ctl-count').addEventListener('click', (e) => {
       cell.appendChild(img);
     } else {
       const ph = div('hist-ph');
-      ph.textContent = '图片已过期';
+      ph.textContent = '图片已过�?;
       ph.title = '本机只保留了任务编号，图片需要重新生成或从服务端取回';
       cell.appendChild(ph);
     }
@@ -2146,7 +2147,7 @@ $('ctl-count').addEventListener('click', (e) => {
 
     const tag = document.createElement('span');
     tag.className = 'h-kind';
-    tag.textContent = kind === 'batch' ? '批量' : kind === 'image' ? '图生图' : '文生图';
+    tag.textContent = kind === 'batch' ? '批量' : kind === 'image' ? '图生�? : '文生�?;
     cell.appendChild(tag);
 
     const clock = document.createElement('span');
@@ -2161,7 +2162,7 @@ $('ctl-count').addEventListener('click', (e) => {
         await addHistoryImageToBatch(turn, job, url);
       });
     }));
-    tools.appendChild(hTool('重新发送', 'M10 4.5v6H7M10 4.5 8 6.5M10.5 11l2 2', () => withdrawTurn(turn)));
+    tools.appendChild(hTool('重新发�?, 'M10 4.5v6H7M10 4.5 8 6.5M10.5 11l2 2', () => withdrawTurn(turn)));
     tools.appendChild(hTool('下载', 'M10 3.5v8M6.5 8.5 10 12l3.5-3.5M4.5 15.5h11', () => downloadJob(turn, job)));
     cell.appendChild(tools);
     
@@ -2184,10 +2185,10 @@ $('ctl-count').addEventListener('click', (e) => {
     if (dom.selectedCount) dom.selectedCount.textContent = String(count);
     if (dom.batchDeleteBtn) dom.batchDeleteBtn.disabled = count === 0;
     
-    // 更新全选按钮文本
+    // 更新全选按钮文�?
     const totalCheckboxes = dom.drawerBody.querySelectorAll('.hist-checkbox').length;
     if (dom.batchSelectBtn) {
-      dom.batchSelectBtn.textContent = count === totalCheckboxes && totalCheckboxes > 0 ? '取消全选' : '全选';
+      dom.batchSelectBtn.textContent = count === totalCheckboxes && totalCheckboxes > 0 ? '取消全�? : '全�?;
     }
     
     // 更新选中集合
@@ -2218,14 +2219,14 @@ $('ctl-count').addEventListener('click', (e) => {
       }
     });
     
-    // 清空选中状态
+    // 清空选中状�?
     S.selectedHistory.clear();
     persistTurns();
     updateHistoryBadge();
     
     // 重新渲染
     renderDrawer();
-    toast(`已删除 ${toDelete.length} 张图片`, 'ok', 2400);
+    toast(`已删�?${toDelete.length} 张图片`, 'ok', 2400);
   }
 
   function hTool(title, d, onClick) {
@@ -2246,7 +2247,7 @@ $('ctl-count').addEventListener('click', (e) => {
       let blob = job.blob;
       if (!blob) {
         const res = await fetch(url);
-        if (!res.ok) throw new Error('图片读取失败：' + res.status);
+        if (!res.ok) throw new Error('图片读取失败�? + res.status);
         blob = await res.blob();
         job.blob = blob;
       }
@@ -2256,11 +2257,11 @@ $('ctl-count').addEventListener('click', (e) => {
       closeDrawer();
       toast('已放入「待修改图片」，可继续上传参考图', 'ok', 2400);
     } catch (e) {
-      toast('加入批量修改失败：' + e.message, 'err');
+      toast('加入批量修改失败�? + e.message, 'err');
     }
   }
 
-  // 刷新后本地只存了 historyId，图片要按需重新取一次。
+  // 刷新后本地只存了 historyId，图片要按需重新取一次�?
   async function ensureImage(turn, job) {
     if (job.imageUrl) return job.imageUrl;
     if (!job.historyId) return job.imageUrl || '';
@@ -2274,7 +2275,7 @@ $('ctl-count').addEventListener('click', (e) => {
 
   function persistTurns() {
     try {
-      // 合并历史记录与当前会话，去重后持久化（避免历史被覆盖丢失）
+      // 合并历史记录与当前会话，去重后持久化（避免历史被覆盖丢失�?
       const all = [...(S.historyData || []), ...S.turns];
       const seen = new Set();
       const merged = [];
@@ -2286,7 +2287,7 @@ $('ctl-count').addEventListener('click', (e) => {
         if (merged.length >= 16) break;
       }
       merged.reverse();
-      // 预算：图片 dataUrl 最多 3.6MB，超出时优先保留新条目
+      // 预算：图�?dataUrl 最�?3.6MB，超出时优先保留新条�?
       const budget = { left: 3600 * 1024 };
       const pickDataUrl = (r) => {
         const d = r.dataUrl || '';
@@ -2335,7 +2336,7 @@ $('ctl-count').addEventListener('click', (e) => {
         })
       );
     } catch {
-      /* 存储受限时静默降级 */
+      /* 存储受限时静默降�?*/
     }
   }
 
@@ -2352,7 +2353,7 @@ $('ctl-count').addEventListener('click', (e) => {
       const raw = JSON.parse(localStorage.getItem(LS.turns) || '[]');
       if (!Array.isArray(raw)) return;
       const fp = fingerprint(S.key);
-      // 加载历史数据到 historyData（用于历史记录抽屉）
+      // 加载历史数据�?historyData（用于历史记录抽屉）
       S.historyData = raw
         .filter((t) => !t.keyFp || t.keyFp === fp)
         .map((t) => ({
@@ -2382,7 +2383,7 @@ $('ctl-count').addEventListener('click', (e) => {
     renderDrawer();
     persistTurns();
     closeDrawer();
-    toast('已撤回这一轮的提示词与图片，可修改后重新发送', 'ok', 2600);
+    toast('已撤回这一轮的提示词与图片，可修改后重新发�?, 'ok', 2600);
     setTimeout(() => dom.prompt.focus(), 40);
   }
 
@@ -2413,10 +2414,10 @@ $('ctl-count').addEventListener('click', (e) => {
       dom.keyLabel.textContent = 'Key 无效';
       dom.keyLabel.parentElement.classList.add('warn');
     } else if (state === 'ok') {
-      dom.keyLabel.textContent = 'Key 已配置';
+      dom.keyLabel.textContent = 'Key 已配�?;
       dom.keyLabel.parentElement.classList.remove('warn');
     } else {
-      dom.keyLabel.textContent = 'Key 未配置';
+      dom.keyLabel.textContent = 'Key 未配�?;
       dom.keyLabel.parentElement.classList.add('warn');
     }
   }
@@ -2429,7 +2430,7 @@ $('ctl-count').addEventListener('click', (e) => {
   function openSettings(hint) {
     dom.keyInput.value = S.key;
     renderRouteOptions();
-    setStatus(hint || (S.key ? '已保存 Key，可点“测试连接”确认' : '还未填写 Key，生成前需要先配置'));
+    setStatus(hint || (S.key ? '已保�?Key，可点“测试连接”确�? : '还未填写 Key，生成前需要先配置'));
     dom.settings.hidden = false;
     setTimeout(() => dom.keyInput.focus(), 60);
   }
@@ -2442,7 +2443,7 @@ $('ctl-count').addEventListener('click', (e) => {
     dom.routeSelect.innerHTML = '';
     const auto = document.createElement('option');
     auto.value = '';
-    auto.textContent = '自动（优先国际线路，失败自动切换）';
+    auto.textContent = '自动（优先国际线路，失败自动切换�?;
     dom.routeSelect.appendChild(auto);
     S.sites.forEach((s) => {
       const o = document.createElement('option');
@@ -2477,14 +2478,14 @@ $('ctl-count').addEventListener('click', (e) => {
     localStorage.setItem(LS.key, key);
     localStorage.setItem(LS.base, base);
     markKeyState('ok');
-    setStatus('已保存，正在校验…');
+    setStatus('已保存，正在校验�?);
     await loadCatalog(false);
     if (S.models.length) {
-      setStatus(`连接正常：${S.models.length} 个模型可用`, 'ok');
-      toast('Key 已保存，模型目录已更新', 'ok', 2200);
+      setStatus(`连接正常�?{S.models.length} 个模型可用`, 'ok');
+      toast('Key 已保存，模型目录已更�?, 'ok', 2200);
       setTimeout(closeSettings, 550);
     } else {
-      setStatus('已保存，但模型目录未能读取，请检查 Key 或线路', 'err');
+      setStatus('已保存，但模型目录未能读取，请检�?Key 或线�?, 'err');
     }
   });
 
@@ -2499,10 +2500,10 @@ $('ctl-count').addEventListener('click', (e) => {
     const oldBase = S.base;
     S.key = key;
     S.base = base;
-    setStatus('正在检测线路与 Key…');
+    setStatus('正在检测线路与 Key�?);
     try {
       const data = await api('/api/draw/models');
-      setStatus(`连接正常：${(data.models || []).length} 个模型，目录版本 ${data.catalogRevision || '-'}`, 'ok');
+      setStatus(`连接正常�?{(data.models || []).length} 个模型，目录版本 ${data.catalogRevision || '-'}`, 'ok');
     } catch (e) {
       setStatus('检测失败：' + e.message, 'err');
     } finally {
@@ -2523,7 +2524,7 @@ $('ctl-count').addEventListener('click', (e) => {
     setStatus('已清除本机保存的 Key', 'ok');
   });
 
-  /* ------------------------------ 输入区 ------------------------------ */
+  /* ------------------------------ 输入�?------------------------------ */
 
   function autosize() {
     dom.prompt.style.height = 'auto';
