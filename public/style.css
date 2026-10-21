@@ -1130,20 +1130,16 @@ button {
 }
 
 .modal-mask[hidden] { display: none; }
+.modal-mask:not([hidden]) {
+  z-index: 300;
+}
+
+.modal-mask[hidden] { display: none; }
 
 .modal {
-  /* grid 项的 min-content 会撑开弹窗，这里必须同时压住宽度上限 */
-  width: min(440px, calc(100vw - 32px));
-  max-width: calc(100vw - 32px);
-  min-width: 0; /* grid 项默认 min-content，窄屏下会把弹窗撑出屏幕 */
-  max-height: calc(100dvh - 48px);
-  overflow-y: auto;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 30px 80px rgba(20, 34, 64, 0.24);
-  padding: 20px 22px 18px;
-  animation: modalIn 0.18s ease;
-}
+  position: relative;
+  z-index: 220;
+  min-width: 0;
 
 @keyframes modalIn {
   from { opacity: 0; transform: translateY(8px) scale(0.99); }
@@ -1695,7 +1691,21 @@ button {
   .row-2 .ghost-btn { padding: 0 8px; }
   .seg { padding: 0 9px; }
   .hist-grid { grid-template-columns: repeat(2, 1fr); }
-  .modal-mask { padding: 14px; }
+  .modal-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(30, 42, 66, 0.24);
+  backdrop-filter: blur(3px);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.modal-mask[hidden] { display: none; }
+.modal-mask:not([hidden]) {
+  z-index: 300;
+}
   .modal { padding: 16px 16px 14px; }
   .modal-actions { gap: 6px; }
   .modal-actions .grow { flex-basis: 100%; height: 0; }
