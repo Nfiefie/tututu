@@ -577,8 +577,18 @@
     const model = currentModel();
     if (!model) return;
     const items = [];
+    // 获取当前模型支持的比例列表，并按「竖图→方图→横图」排序
     const ratios = [...new Set(model.presets.map(p => p.ratio))];
-    ratios.forEach((ratio) => {
+    const order = {'9:16': 1, '3:4': 1, '2:3': 1, '1:1': 2, '4:3': 3, '3:2': 3, '16:9': 3};
+    ratios.sort((a, b) => (order[a] || 0) - (order[b] || 0));
+    
+    // 分组显示：先显示当前分类的所有比例
+    const currentCategory = order[S.ratio] || 0;
+    const categoryRatios = ratios.filter(r => order[r] === currentCategory);
+    const otherRatios = ratios.filter(r => order[r] !== currentCategory);
+    const sortedRatios = categoryRatios.concat(otherRatios);
+    
+    for (const ratio of sortedRatios) {
       const px = SIZE_TABLE[ratio] || null;
       const row = px ? px[S.tier] || '' : '';
       items.push({
@@ -587,7 +597,7 @@
         active: ratio === S.ratio,
         ratio,
       });
-    });
+    }
     openMenu(e.currentTarget, items, (it) => {
       S.ratio = it.ratio;
       ensureTier();
@@ -1200,7 +1210,7 @@ $('ctl-count').addEventListener('click', (e) => {
     const persona = div('persona');
     persona.innerHTML = RING_SVG;
     const pname = document.createElement('span');
-    pname.textContent = t.persona || '中矩视界';
+    pname.textContent = t.persona || 'NfieDraw';
     persona.appendChild(pname);
     ai.appendChild(persona);
 
@@ -1404,7 +1414,7 @@ $('ctl-count').addEventListener('click', (e) => {
         h: t.h,
       })),
       jobs: [],
-      persona: '中矩视界',
+      persona: 'NfieDraw',
     };
 
     S.turns.push(turn);
@@ -1547,7 +1557,7 @@ $('ctl-count').addEventListener('click', (e) => {
       tier: S.tier,
       refs: S.refs.map((r) => ({ name: r.name, thumb: r.thumb, dataUrl: r.dataUrl, w: r.w, h: r.h })),
       jobs: [],
-      persona: '中矩视界',
+      persona: 'NfieDraw',
     };
 
     S.turns.push(turn);
